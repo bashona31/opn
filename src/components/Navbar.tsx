@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Wallet, LogOut, Copy, Check } from "lucide-react";
+import { useWallet } from "@/context/WalletContext";
+import { shortenAddress } from "@/lib/wallet";
 
 const navLinks = [
   { label: "Hero", href: "#hero" },
@@ -11,6 +13,17 @@ const navLinks = [
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const { address, isConnected, isConnecting, connect, disconnect } = useWallet();
+
+  const handleCopyAddress = () => {
+    if (address) {
+      navigator.clipboard.writeText(address);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass-strong">
@@ -40,11 +53,65 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Connect Button */}
-          <div className="hidden md:block">
-            <button className="relative px-5 py-2 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-neon-pink to-neon-cyan transition-all duration-300 hover:shadow-neon-pink hover:scale-105">
-              Connect
-            </button>
+          {/* Wallet Button - Desktop */}
+          <div className="hidden md:block relative">
+            {isConnected && address ? (
+              <div className="relative">
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full glass neon-border-cyan text-sm font-medium text-white transition-all duration-300 hover:shadow-neon-cyan"
+                >
+                  <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
+                  <span className="font-mono text-neon-cyan">
+                    {shortenAddress(address)}
+                  </span>
+                </button>
+
+                {/* Dropdown */}
+                {dropdownOpen && (
+                  <div className="absolute right-0 top-12 w-56 rounded-xl glass-strong p-2 border border-glass-border animate-slide-up">
+                    <div className="px-3 py-2 mb-1">
+                      <p className="text-[10px] text-gray-500 uppercase tracking-wider">
+                        Connected to OPN Testnet
+                      </p>
+                      <p className="text-xs font-mono text-gray-300 mt-1 break-all">
+                        {address}
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleCopyAddress}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+                    >
+                      {copied ? (
+                        <Check size={12} className="text-green-400" />
+                      ) : (
+                        <Copy size={12} />
+                      )}
+                      {copied ? "Copied!" : "Copy Address"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        disconnect();
+                        setDropdownOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+                    >
+                      <LogOut size={12} />
+                      Disconnect
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={connect}
+                disabled={isConnecting}
+                className="relative flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-neon-pink to-neon-cyan transition-all duration-300 hover:shadow-neon-pink hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Wallet size={14} />
+                {isConnecting ? "Connecting..." : "Connect Wallet"}
+              </button>
+            )}
           </div>
 
           {/* Mobile Toggle */}
@@ -71,9 +138,40 @@ export default function Navbar() {
                 {link.label}
               </a>
             ))}
-            <button className="w-full mt-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-neon-pink to-neon-cyan">
-              Connect
-            </button>
+
+            {/* Mobile Wallet Button */}
+            {isConnected && address ? (
+              <div className="pt-2 border-t border-glass-border space-y-2">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg glass">
+                  <div className="h-2 w-2 rounded-full bg-green-400" />
+                  <span className="text-xs font-mono text-neon-cyan">
+                    {shortenAddress(address)}
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    disconnect();
+                    setMobileOpen(false);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium text-red-400 border border-red-400/20 hover:bg-red-500/10"
+                >
+                  <LogOut size={14} />
+                  Disconnect
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  connect();
+                  setMobileOpen(false);
+                }}
+                disabled={isConnecting}
+                className="w-full mt-2 flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-neon-pink to-neon-cyan disabled:opacity-50"
+              >
+                <Wallet size={14} />
+                {isConnecting ? "Connecting..." : "Connect Wallet"}
+              </button>
+            )}
           </div>
         </div>
       )}

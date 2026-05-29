@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { WalletProvider } from "@/context/WalletContext";
 
 export const metadata: Metadata = {
   title: "OPN Builders | Web3 & 3D Art Studio",
@@ -21,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className="min-h-screen bg-bg-primary text-white antialiased">
-        {children}
+        <WalletProvider>{children}</WalletProvider>
       </body>
     </html>
   );
