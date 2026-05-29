@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Menu, X, Wallet, LogOut, Copy, Check } from "lucide-react";
 import { useWallet } from "@/context/WalletContext";
 import { shortenAddress } from "@/lib/wallet";
+import OPNLogo from "@/components/OPNLogo";
 
 const navLinks = [
   { label: "Hero", href: "#hero" },
@@ -30,13 +31,11 @@ export default function Navbar() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <a href="#hero" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-neon flex items-center justify-center">
-              <span className="text-sm font-black text-white">O</span>
-            </div>
+          <a href="#hero" className="flex items-center gap-2.5 group">
+            <OPNLogo size={36} className="transition-transform duration-300 group-hover:scale-110" />
             <span className="text-lg font-bold tracking-tight">
-              <span className="text-white">OPN</span>{" "}
-              <span className="text-gray-400 font-medium">Builders</span>
+              <span className="text-white">IOPn</span>{" "}
+              <span className="text-gray-400 font-medium">Builder</span>
             </span>
           </a>
 

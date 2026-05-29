@@ -3,12 +3,12 @@ import "./globals.css";
 import { WalletProvider } from "@/context/WalletContext";
 
 export const metadata: Metadata = {
-  title: "OPN Builders | Web3 & 3D Art Studio",
+  title: "IOPn Builder | Web3 & 3D Art Studio",
   description:
     "Shaping the Next Gen of Web3 & 3D Art. Crafting futuristic 3D character designs and navigating tokenized ecosystems.",
-  keywords: ["Web3", "3D Art", "NFT", "Blockchain", "OPN", "Nexus"],
+  keywords: ["Web3", "3D Art", "NFT", "Blockchain", "OPN", "IOPn", "Nexus"],
   openGraph: {
-    title: "OPN Builders",
+    title: "IOPn Builder",
     description: "Shaping the Next Gen of Web3 & 3D Art",
     type: "website",
   },
