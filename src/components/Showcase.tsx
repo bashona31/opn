@@ -1,37 +1,38 @@
 "use client";
 
 import { Eye } from "lucide-react";
+import Image from "next/image";
 
 const artworks = [
   {
     title: "Crystal Robot Mascot Concept",
     tag: "3D Animation",
-    gradient: "from-neon-pink/20 to-purple-900/20",
+    image: "https://cdn.pixabay.com/photo/2024/03/04/16/38/ai-generated-8612487_1280.jpg",
   },
   {
     title: "Neon Samurai Genesis",
     tag: "Character Design",
-    gradient: "from-neon-cyan/20 to-blue-900/20",
+    image: "https://cdn.pixabay.com/photo/2024/05/09/15/13/ai-generated-8751050_1280.jpg",
   },
   {
     title: "Void Walker - Series I",
     tag: "3D Sculpture",
-    gradient: "from-violet-600/20 to-neon-pink/20",
+    image: "https://cdn.pixabay.com/photo/2024/02/28/11/04/ai-generated-8601965_1280.jpg",
   },
   {
     title: "Cyber Empress Collection",
     tag: "NFT Art",
-    gradient: "from-neon-cyan/20 to-emerald-900/20",
+    image: "https://cdn.pixabay.com/photo/2024/03/15/17/23/ai-generated-8635189_1280.jpg",
   },
   {
     title: "Mecha Dragon Spirit",
     tag: "3D Animation",
-    gradient: "from-orange-600/20 to-neon-pink/20",
+    image: "https://cdn.pixabay.com/photo/2024/01/18/18/16/ai-generated-8516531_1280.jpg",
   },
   {
     title: "Quantum Ape Reborn",
     tag: "Character Design",
-    gradient: "from-neon-pink/20 to-neon-cyan/20",
+    image: "https://cdn.pixabay.com/photo/2024/04/17/17/10/ai-generated-8703089_1280.png",
   },
 ];
 
@@ -64,27 +65,25 @@ export default function Showcase() {
               className="group relative rounded-2xl glass overflow-hidden transition-all duration-500 hover:scale-[1.03] hover:shadow-glass-hover"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
-              {/* Art Placeholder */}
-              <div
-                className={`aspect-[4/5] bg-gradient-to-br ${art.gradient} flex items-center justify-center relative`}
-              >
-                {/* Decorative elements */}
-                <div className="absolute inset-0 opacity-20">
-                  <div className="absolute top-4 left-4 w-16 h-16 border border-white/10 rounded-full" />
-                  <div className="absolute bottom-8 right-8 w-24 h-24 border border-white/5 rounded-xl rotate-12" />
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 border border-white/10 rounded-2xl" />
-                </div>
+              {/* Art Image */}
+              <div className="aspect-[4/5] relative overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={art.image}
+                  alt={art.title}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  loading="lazy"
+                />
 
-                {/* Placeholder icon */}
-                <div className="relative z-10 w-20 h-20 rounded-2xl glass flex items-center justify-center">
-                  <span className="text-3xl font-black gradient-text">
-                    {art.title.charAt(0)}
-                  </span>
-                </div>
+                {/* Overlay gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-bg-primary/90 via-bg-primary/20 to-transparent" />
+
+                {/* Neon border glow on hover */}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 border border-neon-pink/30 rounded-2xl shadow-[inset_0_0_30px_rgba(255,42,133,0.1)]" />
 
                 {/* Hover overlay */}
                 <div className="absolute inset-0 bg-bg-primary/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-full glass neon-border-pink">
+                  <div className="flex items-center gap-2 px-5 py-2.5 rounded-full glass neon-border-pink transform scale-90 group-hover:scale-100 transition-transform duration-300">
                     <Eye size={14} className="text-neon-pink" />
                     <span className="text-xs font-medium text-white">View Project</span>
                   </div>
