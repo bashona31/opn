@@ -1,59 +1,97 @@
-// OPN Testnet Configuration
+// OPN Testnet Configuration (IOPN)
+// Chain ID: 984 | RPC: https://testnet-rpc.iopn.tech | Symbol: OPN
 export const OPN_TESTNET = {
-  chainId: "0x1A3E", // 6718 in decimal - adjust to your actual OPN testnet chain ID
-  chainName: "OPN Testnet",
-  rpcUrls: ["https://testnet-rpc.opn.network"],
+  chainId: "0x3D8", // 984 in decimal
+  chainName: "OPN Chain Testnet",
+  rpcUrls: ["https://testnet-rpc.iopn.tech"],
   nativeCurrency: {
     name: "OPN",
     symbol: "OPN",
     decimals: 18,
   },
-  blockExplorerUrls: ["https://testnet-explorer.opn.network"],
+  blockExplorerUrls: ["https://testnet-explorer.iopn.tech"],
 };
 
-// Download fee in OPN (e.g., 0.001 OPN per download)
+// Download fee in OPN
 export const DOWNLOAD_FEE = "0.001";
 
-// Treasury wallet that receives download fees
-export const TREASURY_WALLET = "0x0000000000000000000000000000000000000001";
+// Treasury wallet address - receives download fees
+// Replace with your actual wallet address
+export const TREASURY_WALLET = "0x000000000000000000000000000000000000dEaD";
 
 export async function connectWallet(): Promise<string | null> {
   if (typeof window === "undefined" || !window.ethereum) {
-    throw new Error("MetaMask not installed. Please install MetaMask to continue.");
+    throw new Error("Please install MetaMask to connect your wallet!");
   }
 
   try {
-    // Request account access
-    const accounts = await window.ethereum.request({
+    // First request accounts
+    const accounts: string[] = await window.ethereum.request({
       method: "eth_requestAccounts",
     });
 
-    // Switch to OPN Testnet
+    if (!accounts || accounts.length === 0) {
+      throw new Error("No accounts found. Please unlock MetaMask.");
+    }
+
+    // Try switching to OPN Testnet
     try {
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
         params: [{ chainId: OPN_TESTNET.chainId }],
       });
     } catch (switchError: any) {
-      // Chain not added, add it
-      if (switchError.code === 4902) {
-        await window.ethereum.request({
-          method: "wallet_addEthereumChain",
-          params: [OPN_TESTNET],
-        });
+      // Error 4902 = chain not added yet, so add it
+      if (switchError.code === 4902 || switchError.code === -32603) {
+        try {
+          await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [
+              {
+                chainId: OPN_TESTNET.chainId,
+                chainName: OPN_TESTNET.chainName,
+                rpcUrls: OPN_TESTNET.rpcUrls,
+                nativeCurrency: OPN_TESTNET.nativeCurrency,
+                blockExplorerUrls: OPN_TESTNET.blockExplorerUrls,
+              },
+            ],
+          });
+        } catch (addError: any) {
+          throw new Error("Failed to add OPN Testnet. Please add it manually.");
+        }
+      } else if (switchError.code === 4001) {
+        throw new Error("User rejected chain switch. Please switch to OPN Testnet.");
       } else {
-        throw switchError;
+        // If switch fails for other reasons, try adding the chain
+        try {
+          await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [
+              {
+                chainId: OPN_TESTNET.chainId,
+                chainName: OPN_TESTNET.chainName,
+                rpcUrls: OPN_TESTNET.rpcUrls,
+                nativeCurrency: OPN_TESTNET.nativeCurrency,
+                blockExplorerUrls: OPN_TESTNET.blockExplorerUrls,
+              },
+            ],
+          });
+        } catch {
+          throw new Error("Could not connect to OPN Testnet. Please try manually.");
+        }
       }
     }
 
-    return accounts[0] || null;
+    return accounts[0];
   } catch (error: any) {
+    if (error.code === 4001) {
+      throw new Error("Connection rejected. Please approve the request in MetaMask.");
+    }
     throw new Error(error.message || "Failed to connect wallet");
   }
 }
 
 export async function disconnectWallet(): Promise<void> {
-  // MetaMask doesn't have a true disconnect, but we clear local state
   return;
 }
 
@@ -65,37 +103,68 @@ export async function sendDownloadTransaction(
     throw new Error("MetaMask not found");
   }
 
-  // Convert fee to wei (0.001 OPN = 1000000000000000 wei)
-  const feeInWei = "0x" + BigInt(Math.floor(parseFloat(DOWNLOAD_FEE) * 1e18)).toString(16);
+  // Verify we're on OPN Testnet
+  const currentChainId = await window.ethereum.request({
+    method: "eth_chainId",
+  });
 
-  // Encode image title as hex data for the transaction
+  if (currentChainId !== OPN_TESTNET.chainId) {
+    // Try to switch
+    try {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: OPN_TESTNET.chainId }],
+      });
+    } catch {
+      throw new Error("Please switch to OPN Testnet first!");
+    }
+  }
+
+  // Convert fee to wei (0.001 OPN = 1000000000000000 wei)
+  const feeWei = BigInt(Math.floor(parseFloat(DOWNLOAD_FEE) * 1e18));
+  const feeHex = "0x" + feeWei.toString(16);
+
+  // Encode message as hex data
+  const message = `OPN Download: ${imageTitle}`;
   const encoder = new TextEncoder();
-  const data = "0x" + Array.from(encoder.encode(`Download: ${imageTitle}`))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+  const msgBytes = encoder.encode(message);
+  const hexData =
+    "0x" +
+    Array.from(msgBytes)
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
 
   try {
-    const txHash = await window.ethereum.request({
+    const txHash: string = await window.ethereum.request({
       method: "eth_sendTransaction",
       params: [
         {
           from: fromAddress,
           to: TREASURY_WALLET,
-          value: feeInWei,
-          data: data,
+          value: feeHex,
+          data: hexData,
+          gas: "0x5208", // 21000 gas (basic transfer)
         },
       ],
     });
 
-    return txHash as string;
+    return txHash;
   } catch (error: any) {
     if (error.code === 4001) {
-      throw new Error("Transaction rejected by user");
+      throw new Error("Transaction rejected. Download cancelled.");
+    }
+    if (error.message?.includes("insufficient")) {
+      throw new Error("Insufficient OPN balance. Get testnet tokens first!");
     }
     throw new Error(error.message || "Transaction failed");
   }
 }
 
 export function shortenAddress(address: string): string {
+  if (!address) return "";
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+export function getExplorerTxUrl(txHash: string): string {
+  return `${OPN_TESTNET.blockExplorerUrls[0]}/tx/${txHash}`;
 }

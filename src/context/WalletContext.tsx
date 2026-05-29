@@ -64,13 +64,16 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     };
 
     const handleChainChanged = () => {
-      window.location.reload();
+      // Don't reload - just re-check accounts
+      window.ethereum?.request({ method: "eth_accounts" }).then((accs: string[]) => {
+        if (accs.length > 0) setAddress(accs[0]);
+      }).catch(() => {});
     };
 
     window.ethereum.on("accountsChanged", handleAccountsChanged);
     window.ethereum.on("chainChanged", handleChainChanged);
 
-    // Check if already connected
+    // Check if already connected on page load
     window.ethereum
       .request({ method: "eth_accounts" })
       .then((accounts: string[]) => {

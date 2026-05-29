@@ -8,9 +8,10 @@ import {
   CheckCircle2,
   XCircle,
   Wallet,
+  ExternalLink,
 } from "lucide-react";
 import { useWallet } from "@/context/WalletContext";
-import { sendDownloadTransaction, DOWNLOAD_FEE } from "@/lib/wallet";
+import { sendDownloadTransaction, DOWNLOAD_FEE, getExplorerTxUrl } from "@/lib/wallet";
 
 interface PixabayImage {
   id: number;
@@ -128,8 +129,8 @@ export default function Showcase() {
       // Step 2: Transaction sent, waiting for confirmation
       updateDownloadState(index, { state: "confirming", txHash });
 
-      // Wait a moment to simulate confirmation (on real chain, you'd wait for receipt)
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Wait for transaction to be mined
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
       // Step 3: Download the image
       updateDownloadState(index, { state: "downloading", txHash });
@@ -340,12 +341,18 @@ export default function Showcase() {
 
                   {/* Transaction Hash */}
                   {dlState.txHash && dlState.state !== "idle" && (
-                    <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-white/3 border border-white/5">
+                    <a
+                      href={getExplorerTxUrl(dlState.txHash)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 px-2 py-1.5 rounded-md bg-white/3 border border-white/5 hover:border-neon-cyan/30 transition-colors"
+                    >
                       <span className="text-[9px] text-gray-500">Tx:</span>
-                      <span className="text-[9px] font-mono text-neon-cyan/70 truncate">
+                      <span className="text-[9px] font-mono text-neon-cyan/70 truncate flex-1">
                         {dlState.txHash}
                       </span>
-                    </div>
+                      <ExternalLink size={9} className="text-neon-cyan/50 shrink-0" />
+                    </a>
                   )}
                 </div>
               </div>
